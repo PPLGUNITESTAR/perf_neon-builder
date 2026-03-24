@@ -193,13 +193,14 @@ setup_ksu() {
     fi
 }
 
-# Compile kernel function
-compile_kernel() {
+setup_precompile() {
     # Apply O3 flags into Kernel Makefile
+    echo "Applying O3 flags before compiling..."
     sed -i 's/KBUILD_CFLAGS\s\++= -O2/KBUILD_CFLAGS   += -O3/g' Makefile
     sed -i 's/LDFLAGS\s\++= -O2/LDFLAGS += -O3/g' Makefile
-    # Merge defconfig
+    # Make a output directory
     mkdir -p out
+    # Setup main defconfig for compilation
     make O=out \
         ARCH=arm64 \
         LLVM=1 \
@@ -215,7 +216,8 @@ compile_kernel() {
         CROSS_COMPILE=aarch64-linux-android- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
         CLANG_TRIPLE=aarch64-linux-gnu- \
-        $ACTUAL_MAIN_DEFCONFIG
+        $ACTUAL_MAIN_DEFCONFIG &> /dev/null
+    # Merge additional configs
     echo "Appending fragments to .config..."
     for fragment in $COMMON_DEFCONFIG $DEVICE_DEFCONFIG; do
         if [ -f "arch/arm64/configs/$fragment" ]; then
@@ -225,7 +227,9 @@ compile_kernel() {
             echo "Warning: Fragment arch/arm64/configs/$fragment not found!"
         fi
     done
+    # Set kernel name
     echo "CONFIG_LOCALVERSION=\"$KERNEL_NAME\"" >> out/.config
+    # Run olddefconfig to finalize .config
     yes "" | make O=out \
         ARCH=arm64 \
         LLVM=1 \
@@ -241,7 +245,7 @@ compile_kernel() {
         CROSS_COMPILE=aarch64-linux-android- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
         CLANG_TRIPLE=aarch64-linux-gnu- \
-        olddefconfig
+        olddefconfig &> /dev/null
     # Do a git cleanup before compiling
     echo "Cleaning up git before compiling..."
     git config user.email $GIT_EMAIL
@@ -249,6 +253,10 @@ compile_kernel() {
     git config set advice.addEmbeddedRepo true
     git add .
     git commit -m "cleanup: applied patches before build" &> /dev/null
+}
+
+# Compile kernel function
+compile_kernel() {
     # Start compilation
     echo "Starting kernel compilation..."
     make -j$(nproc --all) \
@@ -282,6 +290,7 @@ main() {
     setup_toolchain
     setup_specific
     setup_ksu
+    setup_precompile
     compile_kernel
 }
 
