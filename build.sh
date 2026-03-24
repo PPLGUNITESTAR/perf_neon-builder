@@ -31,7 +31,7 @@ setup_environment() {
         export FEATURE_DEFCONFIG=""
     elif [[ "$DEVICE_IMPORT" == "ginkgo" ]]; then
         # Editable defconfig
-        export MAIN_DEFCONFIG="arch/arm64/configs/vendor/sdmsteppe-perf_defconfig"
+        export MAIN_DEFCONFIG="arch/arm64/configs/vendor/trinket-perf_defconfig"
         # Do not use for edit
         export ACTUAL_MAIN_DEFCONFIG="vendor/trinket-perf_defconfig"
         export COMMON_DEFCONFIG="vendor/debugfs.config vendor/xiaomi-trinket.config"
