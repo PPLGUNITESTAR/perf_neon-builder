@@ -28,6 +28,23 @@ setup_environment() {
         export ACTUAL_MAIN_DEFCONFIG="vendor/sdmsteppe-perf_defconfig"
         export COMMON_DEFCONFIG="vendor/debugfs.config"
         export DEVICE_DEFCONFIG="vendor/sweet.config"
+        export FEATURE_DEFCONFIG=""
+    elif [[ "$DEVICE_IMPORT" == "ginkgo" ]]; then
+        # Editable defconfig
+        export MAIN_DEFCONFIG="arch/arm64/configs/vendor/sdmsteppe-perf_defconfig"
+        # Do not use for edit
+        export ACTUAL_MAIN_DEFCONFIG="vendor/trinket-perf_defconfig"
+        export COMMON_DEFCONFIG="vendor/debugfs.config vendor/xiaomi-trinket.config"
+        export DEVICE_DEFCONFIG="vendor/ginkgo.config"
+        export FEATURE_DEFCONFIG=""
+    elif [[ "$DEVICE_IMPORT" == "mi89x7" ]]; then
+        # Editable defconfig
+        export MAIN_DEFCONFIG="arch/arm64/configs/vendor/msm8937-perf_defconfig"
+        # Do not use for edit
+        export ACTUAL_MAIN_DEFCONFIG="vendor/msm8937-perf_defconfig"
+        export COMMON_DEFCONFIG="vendor/msm8937-legacy.config vendor/common.config"
+        export DEVICE_DEFCONFIG="vendor/xiaomi/msm8937/common.config vendor/xiaomi/msm8937/mi8937.config"
+        export FEATURE_DEFCONFIG="vendor/feature/android-12.config vendor/feature/erofs.config vendor/feature/exfat.config vendor/feature/lmkd.config vendor/feature/lto.config vendor/feature/ntfs.config vendor/feature/wireguard.config"
     else
         echo "Invalid DEVICE_IMPORT. Use a valid device name."
         exit 1
@@ -146,6 +163,73 @@ setup_specific() {
         # Apply Baseband Guard
         curl -LSs $BBG_SETUP_URI | bash
         echo "CONFIG_BBG=y" >> $MAIN_DEFCONFIG
+    elif [[ "$SELECTED_DEVICE" == "ginkgo" ]]; then
+        # DTC Upgrade Exports
+        export DTC_PATCH1="https://github.com/LineageOS/android_kernel_xiaomi_sm6150/commit/e207247aa4553fff7190dde5dabb50aec400b513.patch"
+        export DTC_PATCH2="https://github.com/LineageOS/android_kernel_xiaomi_sm6150/commit/ae58bbd8f7af4c3c290e63ddcd4112559c5fc240.patch"
+        # Apply DTC patches
+        echo "Applying DTC patches..."
+        wget -qO- $DTC_PATCH1 | patch -s -p1
+        wget -qO- $DTC_PATCH2 | patch -s -p1
+        # DTBO Exports
+        export DTBO_PATCH1="https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/e517bc363a19951ead919025a560f843c2c03ad3.patch"
+        export DTBO_PATCH2="https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/a62a3b05d0f29aab9c4bf8d15fe786a8c8a32c98.patch"
+        export DTBO_PATCH3="https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/4b89948ec7d610f997dd1dab813897f11f403a06.patch"
+        export DTBO_PATCH4="https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/fade7df36b01f2b170c78c63eb8fe0d11c613c4a.patch"
+        export DTBO_PATCH5="https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/2628183db0d96be8dae38a21f2b09cb10978f423.patch"
+        export DTBO_PATCH6="https://github.com/xiaomi-sm6150/android_kernel_xiaomi_sm6150/commit/31f4577af3f8255ae503a5b30d8f68906edde85f.patch"
+        # Apply DTBO patches
+        echo "Applying DTBO patches..."
+        wget -qO- $DTBO_PATCH1 | patch -s -p1
+        wget -qO- $DTBO_PATCH2 | patch -s -p1
+        wget -qO- $DTBO_PATCH3 | patch -s -p1
+        wget -qO- $DTBO_PATCH4 | patch -s -p1
+        wget -qO- $DTBO_PATCH5 | patch -s -p1
+        wget -qO- $DTBO_PATCH6 | patch -s -p1
+        # LTO Exports
+        export LTO_PATCH="https://github.com/TheSillyOk/kernel_ls_patches/raw/refs/heads/master/fix_lto.patch"
+        # Apply LTO patches
+        echo "Applying LTO patches..."
+        wget -qO- $LTO_PATCH | patch -s -p1
+        echo "CONFIG_LTO_CLANG=y" >> $MAIN_DEFCONFIG
+        # Apply general config patches
+        echo "Tuning the rest of default configs..."
+        echo "CONFIG_EROFS_FS=y" >> $MAIN_DEFCONFIG
+        echo "CONFIG_SECURITY_SELINUX_DEVELOP=y" >> $MAIN_DEFCONFIG
+        # KernelSU umount patch
+        export KSU_UMOUNT_PATCH="https://github.com/tbyool/android_kernel_xiaomi_sm6150/commit/64db0dfa2f8aa6c519dbf21eb65c9b89643cda3d.patch"
+        # Apply umount backport
+        wget -qO- $KSU_UMOUNT_PATCH | patch -s -p1
+        # SUSFS patches
+        if [[ "$KSU_SELECTED" == "zako_susfs" ]]; then
+            # SUSFS kernel patch
+            export SUSFS_PATCH="https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd/raw/refs/heads/mainline/Patches/Patch/susfs_patch_to_4.14.patch"
+            # Apply SUSFS patch
+            wget -qO- $SUSFS_PATCH | patch -s -p1 --fuzz=5
+        fi
+        # Baseband Guard exports
+        export BBG_SETUP_URI="https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh"
+        # Apply Baseband Guard
+        curl -LSs $BBG_SETUP_URI | bash
+        echo "CONFIG_BBG=y" >> $MAIN_DEFCONFIG
+    elif [[ "$SELECTED_DEVICE" == "mi89x7" ]]; then
+        # KernelSU umount patch
+        export KSU_UMOUNT_PATCH="https://github.com/zeta96/android_kernel_xiaomi_msm8937/commit/d6c848e0891c9d25ff747c11027c205ac788db46.patch"
+        # Apply umount backport
+        wget -qO- $KSU_UMOUNT_PATCH | patch -s -p1
+        # SUSFS patches
+        if [[ "$KSU_SELECTED" == "zako_susfs" ]]; then
+            # SUSFS kernel patch
+            export SUSFS_PATCH="https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd/raw/refs/heads/mainline/Patches/Patch/susfs_patch_to_4.19.patch"
+            # Apply SUSFS patch
+            wget -qO- $SUSFS_PATCH | patch -s -p1 --fuzz=5
+        fi
+        # Baseband Guard exports
+        export BBG_SETUP_URI="https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh"
+        # Apply Baseband Guard
+        curl -LSs $BBG_SETUP_URI | bash
+        echo "CONFIG_BBG=y" >> $MAIN_DEFCONFIG
+        sed -i '/CONFIG_LSM=/s/"$/ ,baseband_guard"/' $MAIN_DEFCONFIG
     else
         echo "No specific patches to apply for $SELECTED_DEVICE."
     fi
