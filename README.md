@@ -20,6 +20,7 @@ Currently added features:
 Currently supported device:   
 - Redmi Note 10 Pro/Pro Max (sweet)   
 - Redmi Note 8/8T (ginkgo/willow)   
+- Redmi 4A/5A/Note 5A Lite/Y1 Lite (mi8917)
 - Redmi 3/3S/4/4X/Note 5A Prime/Y1 Prime (mi8937)   
 
 # Credits
