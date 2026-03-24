@@ -28,8 +28,6 @@ setup_environment() {
         export ACTUAL_MAIN_DEFCONFIG="vendor/sdmsteppe-perf_defconfig"
         export COMMON_DEFCONFIG="vendor/debugfs.config"
         export DEVICE_DEFCONFIG="vendor/sweet.config"
-        # Kernel name
-        export KERNEL_NAME="-perf-neon"
     else
         echo "Invalid DEVICE_IMPORT. Use a valid device name."
         exit 1
@@ -54,6 +52,8 @@ setup_environment() {
         echo "Invalid KernelSU selector. Use, --ksu=KSU_ZAKO, --ksu=KSU_ZAKO_SUSFS, or --ksu=NONE."
         exit 1
     fi
+    # Kernel name
+    export KERNEL_NAME="-perf-neon"
 }
 
 # Setup toolchain function
