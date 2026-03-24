@@ -51,8 +51,6 @@ setup_environment() {
         echo "Invalid KernelSU selector. Use --ksu=KSU_BLXX, --ksu=KSU_NEXT, or --ksu=NONE."
         exit 1
     fi
-    # Baseband Guard exports
-    export BBG_SETUP_URI="https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh"
 }
 
 # Setup toolchain function
@@ -125,10 +123,6 @@ setup_specific() {
         echo "Applying LTO patches..."
         wget -qO- $LTO_PATCH | patch -s -p1
         echo "CONFIG_LTO_CLANG=y" >> $MAIN_DEFCONFIG
-        # Setup Baseband Guard
-        echo "Setting up Baseband Guard..."
-        curl -LSs $BBG_SETUP_URI | bash
-        echo "CONFIG_BBG=y" >> $MAIN_DEFCONFIG
         # Apply general config patches
         echo "Tuning the rest of default configs..."
         echo "CONFIG_EROFS_FS=y" >> $MAIN_DEFCONFIG
