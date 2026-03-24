@@ -301,7 +301,7 @@ setup_precompile() {
         $ACTUAL_MAIN_DEFCONFIG &> /dev/null
     # Merge additional configs
     echo "Appending fragments to .config..."
-    for fragment in $COMMON_DEFCONFIG $DEVICE_DEFCONFIG; do
+    for fragment in $COMMON_DEFCONFIG $DEVICE_DEFCONFIG $FEATURE_DEFCONFIG; do
         if [ -f "arch/arm64/configs/$fragment" ]; then
             echo "Merging $fragment..."
             cat "arch/arm64/configs/$fragment" >> out/.config
