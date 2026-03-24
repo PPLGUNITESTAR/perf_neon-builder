@@ -328,6 +328,23 @@ setup_precompile() {
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
         CLANG_TRIPLE=aarch64-linux-gnu- \
         olddefconfig &> /dev/null
+    # Run syncconfig to satisfy 4.19 kernels
+    yes "" | make O=out \
+        ARCH=arm64 \
+        LLVM=1 \
+        LLVM_IAS=1 \
+        CC=clang \
+        LD=ld.lld \
+        AR=llvm-ar \
+        AS=llvm-as \
+        NM=llvm-nm \
+        OBJCOPY=llvm-objcopy \
+        OBJDUMP=llvm-objdump \
+        STRIP=llvm-strip \
+        CROSS_COMPILE=aarch64-linux-android- \
+        CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+        CLANG_TRIPLE=aarch64-linux-gnu- \
+        syncconfig &> /dev/null
     # Do a git cleanup before compiling
     echo "Cleaning up git before compiling..."
     git config user.email $GIT_EMAIL
