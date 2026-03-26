@@ -247,10 +247,12 @@ setup_specific() {
         echo "CONFIG_BBG=y" >> $MAIN_DEFCONFIG
         sed -i '/CONFIG_LSM=/s/"$/ ,baseband_guard"/' $MAIN_DEFCONFIG
         # BORE Scheduler Export
-        export BORE_PATCH="https://github.com/ximi-mojito-test/android_kernel_xiaomi_mojito/commit/2220322065591df5ff7ae27cc1fff386d3631bd0.patch"
+        export BORE_PATCH="https://github.com/firelzrd/bore-scheduler/raw/refs/heads/main/patches/legacy/linux-4.19-bore/0001-linux4.19.y-bore5.1.0r2.patch"
+        export BORE_VANILLA_PATCH="https://github.com/firelzrd/bore-scheduler/raw/refs/heads/main/patches/legacy/linux-4.19-bore/0002-constgran-vanilla-max.patch"
         # Apply BORE Scheduler patch
         echo "Applying BORE Scheduler patch..."
         wget -qO- $BORE_PATCH | patch -s -p1 --fuzz=5
+        wget -qO- $BORE_VANILLA_PATCH | patch -s -p1 --fuzz=5
         echo "CONFIG_SCHED_BORE=y" >> $MAIN_DEFCONFIG
     else
         echo "No specific patches to apply for $SELECTED_DEVICE."
