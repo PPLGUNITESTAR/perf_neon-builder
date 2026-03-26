@@ -167,7 +167,7 @@ setup_specific() {
         export HIDESTUFF_PATCH="https://github.com/WildKernels/kernel_patches/raw/refs/heads/main/69_hide_stuff.patch"
         # Apply HideStuff
         echo "Applying HideStuff patches..."
-        wget -qO- $HIDESTUFF_PATCH | patch -s -p1
+        wget -qO- $HIDESTUFF_PATCH | patch -s -p1 --fuzz=5
     elif [[ "$SELECTED_DEVICE" == "ginkgo" ]]; then
         # DTC Upgrade Exports
         export DTC_PATCH1="https://github.com/LineageOS/android_kernel_xiaomi_sm6150/commit/e207247aa4553fff7190dde5dabb50aec400b513.patch"
@@ -221,7 +221,7 @@ setup_specific() {
         export HIDESTUFF_PATCH="https://github.com/WildKernels/kernel_patches/raw/refs/heads/main/69_hide_stuff.patch"
         # Apply HideStuff
         echo "Applying HideStuff patches..."
-        wget -qO- $HIDESTUFF_PATCH | patch -s -p1
+        wget -qO- $HIDESTUFF_PATCH | patch -s -p1 --fuzz=5
     elif [[ "$SELECTED_DEVICE" == "mi89x7" ]]; then
         # KernelSU umount patch
         export KSU_UMOUNT_PATCH="https://github.com/zeta96/android_kernel_xiaomi_msm8937/commit/d6c848e0891c9d25ff747c11027c205ac788db46.patch"
@@ -244,7 +244,7 @@ setup_specific() {
         export HIDESTUFF_PATCH="https://github.com/WildKernels/kernel_patches/raw/refs/heads/main/69_hide_stuff.patch"
         # Apply HideStuff
         echo "Applying HideStuff patches..."
-        wget -qO- $HIDESTUFF_PATCH | patch -s -p1
+        wget -qO- $HIDESTUFF_PATCH | patch -s -p1 --fuzz=5
     else
         echo "No specific patches to apply for $SELECTED_DEVICE."
     fi
