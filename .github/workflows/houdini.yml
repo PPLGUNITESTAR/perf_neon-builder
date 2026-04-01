@@ -44,7 +44,7 @@ jobs:
             rm -rf android_kernel_xiaomi_sm6150
           fi
           echo "Cloning kernel sources..."
-          git clone https://github.com/LineageOS/android_kernel_xiaomi_sm6150.git -b "lineage-23.2" --depth=1 android_kernel_xiaomi_sm6150
+          git clone https://github.com/PPLGUNITESTAR/fefek.git -b "lineage-23.2" --depth=1 android_kernel_xiaomi_sm6150
           echo "Copying buildscript..."
           cp sweet.sh android_kernel_xiaomi_sm6150/
           chmod +x ./android_kernel_xiaomi_sm6150/sweet.sh
