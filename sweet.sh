@@ -154,6 +154,10 @@ setup_specific() {
         echo "Tuning the rest of default configs..."
         echo "CONFIG_EROFS_FS=y" >> $MAIN_DEFCONFIG
         echo "CONFIG_SECURITY_SELINUX_DEVELOP=y" >> $MAIN_DEFCONFIG
+        echo "CONFIG_SCHEDUTIL_UP_RATE_LIMIT_BIG=50000" >> $MAIN_DEFCONFIG
+        echo "CONFIG_SCHEDUTIL_DOWN_RATE_LIMIT_BIG=5000" >> $MAIN_DEFCONFIG
+        echo "CONFIG_SCHEDUTIL_UP_RATE_LIMIT_LITTLE=5000" >> $MAIN_DEFCONFIG
+        echo "CONFIG_SCHEDUTIL_UP_RATE_LIMIT_LITTLE=50000" >> $MAIN_DEFCONFIG
         
         # KernelSU umount patch
         export KSU_UMOUNT_PATCH="https://github.com/tbyool/android_kernel_xiaomi_sm6150/commit/64db0dfa2f8aa6c519dbf21eb65c9b89643cda3d.patch"
