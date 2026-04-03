@@ -217,10 +217,14 @@ setup_ksu() {
 }
 
 setup_precompile() {
-    # Apply O3 flags into Kernel Makefile
-    echo "Applying O3 flags before compiling..."
+    echo "Applying O3 flags and mitigating LLVM OOM..."
     sed -i 's/KBUILD_CFLAGS\s\++= -O2/KBUILD_CFLAGS   += -O3/g' Makefile
     sed -i 's/LDFLAGS\s\++= -O2/LDFLAGS += -O3/g' Makefile
+    
+    # Absolute Pruning: Memusnahkan logika GNU Assembler kuno agar selaras dengan kemurnian LLVM_IAS
+    echo "Purging legacy -no-integrated-as flags for Pure LLVM compatibility..."
+    find . -type f -name "Makefile" -exec sed -i 's/-no-integrated-as//g' {} +
+    find . -type f -name "Makefile" -exec sed -i 's/-fno-integrated-as//g' {} +
     
     # Make a output directory
     mkdir -p out
@@ -230,6 +234,10 @@ setup_precompile() {
         ARCH=arm64 \
         LLVM=1 \
         LLVM_IAS=1 \
+        HOSTCC=clang \
+        HOSTCXX=clang++ \
+        HOSTLD=ld.lld \
+        HOSTAR=llvm-ar \
         CC=clang \
         LD=ld.lld \
         AR=llvm-ar \
@@ -240,6 +248,8 @@ setup_precompile() {
         STRIP=llvm-strip \
         CROSS_COMPILE=aarch64-linux-gnu- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+        CC_COMPAT="clang --target=arm-linux-gnueabi" \
+        VDSO32_CC="clang --target=arm-linux-gnueabi" \
         CLANG_TRIPLE=aarch64-linux-gnu- \
         $ACTUAL_MAIN_DEFCONFIG &> /dev/null
         
@@ -262,6 +272,10 @@ setup_precompile() {
         ARCH=arm64 \
         LLVM=1 \
         LLVM_IAS=1 \
+        HOSTCC=clang \
+        HOSTCXX=clang++ \
+        HOSTLD=ld.lld \
+        HOSTAR=llvm-ar \
         CC=clang \
         LD=ld.lld \
         AR=llvm-ar \
@@ -272,6 +286,8 @@ setup_precompile() {
         STRIP=llvm-strip \
         CROSS_COMPILE=aarch64-linux-gnu- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+        CC_COMPAT="clang --target=arm-linux-gnueabi" \
+        VDSO32_CC="clang --target=arm-linux-gnueabi" \
         CLANG_TRIPLE=aarch64-linux-gnu- \
         olddefconfig &> /dev/null
         
@@ -280,6 +296,10 @@ setup_precompile() {
         ARCH=arm64 \
         LLVM=1 \
         LLVM_IAS=1 \
+        HOSTCC=clang \
+        HOSTCXX=clang++ \
+        HOSTLD=ld.lld \
+        HOSTAR=llvm-ar \
         CC=clang \
         LD=ld.lld \
         AR=llvm-ar \
@@ -290,6 +310,8 @@ setup_precompile() {
         STRIP=llvm-strip \
         CROSS_COMPILE=aarch64-linux-gnu- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+        CC_COMPAT="clang --target=arm-linux-gnueabi" \
+        VDSO32_CC="clang --target=arm-linux-gnueabi" \
         CLANG_TRIPLE=aarch64-linux-gnu- \
         syncconfig &> /dev/null
         
@@ -311,6 +333,10 @@ compile_kernel() {
         ARCH=arm64 \
         LLVM=1 \
         LLVM_IAS=1 \
+        HOSTCC=clang \
+        HOSTCXX=clang++ \
+        HOSTLD=ld.lld \
+        HOSTAR=llvm-ar \
         CC=clang \
         LD=ld.lld \
         AR=llvm-ar \
@@ -321,6 +347,8 @@ compile_kernel() {
         STRIP=llvm-strip \
         CROSS_COMPILE=aarch64-linux-gnu- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+        CC_COMPAT="clang --target=arm-linux-gnueabi" \
+        VDSO32_CC="clang --target=arm-linux-gnueabi" \
         CLANG_TRIPLE=aarch64-linux-gnu- 
 }
 
