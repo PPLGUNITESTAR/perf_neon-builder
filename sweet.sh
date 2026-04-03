@@ -13,11 +13,9 @@ setup_environment() {
     export GIT_NAME="$KBUILD_BUILD_USER"
     export GIT_EMAIL="$KBUILD_BUILD_USER@$KBUILD_BUILD_HOST"
     
-    # Toolchain paths
+    # Toolchain paths (Pure LLVM Architecture)
     export CLANG_DIR=$PWD/clang
-    export GCC64_DIR=$PWD/gcc64
-    export GCC32_DIR=$PWD/gcc32
-    export PATH="$CLANG_DIR/bin/:$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH"
+    export PATH="$CLANG_DIR/bin:/usr/bin:$PATH"
     
     # Device Settings - v2.2 (Exclusive to Sweet)
     export SELECTED_DEVICE="$DEVICE_IMPORT"
@@ -40,16 +38,19 @@ setup_environment() {
         export KSU_SETUP_URI="https://github.com/ReSukiSU/ReSukiSU/raw/refs/heads/main/kernel/setup.sh"
         export KSU_BRANCH="main"
         export KSU_GENERAL_PATCH="https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd/raw/refs/heads/mainline/Patches/syscall_hook_patches.sh"
+        export KSU_BACKPORT_PATCH="https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd/raw/refs/heads/mainline/Patches/backport_patches.sh"
     elif [[ "$KERNELSU_SELECTOR" == "--ksu=KSU_ZAKO_SUSFS" ]]; then
         export KSU_SELECTED="zako_susfs"
         export KSU_SETUP_URI="https://github.com/ReSukiSU/ReSukiSU/raw/refs/heads/main/kernel/setup.sh"
         export KSU_BRANCH="main"
         export KSU_GENERAL_PATCH="https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd/raw/refs/heads/mainline/Patches/susfs_inline_hook_patches.sh"
+        export KSU_BACKPORT_PATCH="https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd/raw/refs/heads/mainline/Patches/backport_patches.sh"
     elif [[ "$KERNELSU_SELECTOR" == "--ksu=NONE" ]]; then
         export KSU_SELECTED=""
         export KSU_SETUP_URI=""
         export KSU_BRANCH=""
         export KSU_GENERAL_PATCH=""
+        export KSU_BACKPORT_PATCH=""
     else
         echo "Invalid KernelSU selector. Use --ksu=KSU_ZAKO, --ksu=KSU_ZAKO_SUSFS, or --ksu=NONE."
         exit 1
@@ -61,35 +62,16 @@ setup_environment() {
 
 # Setup toolchain function
 setup_toolchain() {
-    echo "Setting up Neutron Clang & Greenforce GCC toolchains..."
+    echo "Setting up toolchain..."
     
-    # Neutron Clang
-    if [ ! -d "$CLANG_DIR" ]; then
-        echo "Fetching Neutron Clang via Antman..."
-        mkdir -p "$CLANG_DIR" && cd "$CLANG_DIR"
-        curl -LO "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman"
-        chmod a+x antman
-        ./antman -S
-        ./antman --patch=glibc
-        cd ..
+    if [ ! -d "$CLANG_DIR/bin" ]; then
+        echo "Fetching Lilium Clang (Release: 20250912)..."
+        mkdir -p "$CLANG_DIR"
+        wget -qO lilium_clang.tar.gz "https://github.com/liliumproject/clang/releases/download/20250912/lilium_clang-20250912.tar.gz"
+        tar -xf lilium_clang.tar.gz -C "$CLANG_DIR"
+        rm -f lilium_clang.tar.gz
     else
-        echo "Local Neutron Clang dir found, using it."
-    fi
-    
-    # Greenforce GCC64
-    if [ ! -d "$GCC64_DIR" ]; then
-        echo "Fetching Greenforce GCC64..."
-        git clone https://github.com/greenforce-project/gcc-arm64 -b main --depth=1 "$GCC64_DIR" &> /dev/null
-    else
-        echo "Local gcc64 dir found, using it."
-    fi
-    
-    # Greenforce GCC32
-    if [ ! -d "$GCC32_DIR" ]; then
-        echo "Fetching Greenforce GCC32..."
-        git clone https://github.com/greenforce-project/gcc-arm -b main --depth=1 "$GCC32_DIR" &> /dev/null
-    else
-        echo "Local gcc32 dir found, using it."
+        echo "Local Clang dir found, utilizing integrated binutils."
     fi
 }
 
@@ -196,8 +178,6 @@ setup_ksu() {
     if [[ "$KSU_SELECTED" == "zako" ]]; then
         # Run Setup Script
         curl -LSs $KSU_SETUP_URI | bash -s $KSU_BRANCH
-        # Apply manual hook
-        curl -LSs $KSU_GENERAL_PATCH | bash
         # Manual Config Enablement
         echo "CONFIG_KSU=y" >> $MAIN_DEFCONFIG
         echo "CONFIG_KSU_MULTI_MANAGER_SUPPORT=y" >> $MAIN_DEFCONFIG
@@ -205,11 +185,12 @@ setup_ksu() {
         echo "CONFIG_KSU_MANUAL_HOOK=y" >> $MAIN_DEFCONFIG
         echo "CONFIG_KSU_SUSFS=n" >> $MAIN_DEFCONFIG
         echo "CONFIG_HAVE_SYSCALL_TRACEPOINTS=y" >> $MAIN_DEFCONFIG
+        # Apply manual hook
+        curl -LSs $KSU_BACKPORT_PATCH | bash
+        curl -LSs $KSU_GENERAL_PATCH | bash
     elif [[ "$KSU_SELECTED" == "zako_susfs" ]]; then
         # Run Setup Script
         curl -LSs $KSU_SETUP_URI | bash -s $KSU_BRANCH
-        # Apply manual hook
-        curl -LSs $KSU_GENERAL_PATCH | bash
         # Manual Config Enablement
         echo "CONFIG_KSU=y" >> $MAIN_DEFCONFIG
         echo "CONFIG_KSU_MULTI_MANAGER_SUPPORT=y" >> $MAIN_DEFCONFIG
@@ -227,6 +208,9 @@ setup_ksu() {
         echo "CONFIG_KSU_SUSFS_SUS_MAP=y" >> $MAIN_DEFCONFIG
         echo "CONFIG_KSU_SUSFS_TRY_UMOUNT=y" >> $MAIN_DEFCONFIG
         echo "CONFIG_HAVE_SYSCALL_TRACEPOINTS=y" >> $MAIN_DEFCONFIG
+        # Apply manual hook
+        curl -LSs $KSU_BACKPORT_PATCH | bash
+        curl -LSs $KSU_GENERAL_PATCH | bash
     elif [[ "$KSU_SELECTED" == "" ]]; then
         echo "No KernelSU to set up."
     fi
@@ -254,7 +238,7 @@ setup_precompile() {
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
         STRIP=llvm-strip \
-        CROSS_COMPILE=aarch64-linux-android- \
+        CROSS_COMPILE=aarch64-linux-gnu- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
         CLANG_TRIPLE=aarch64-linux-gnu- \
         $ACTUAL_MAIN_DEFCONFIG &> /dev/null
@@ -286,7 +270,7 @@ setup_precompile() {
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
         STRIP=llvm-strip \
-        CROSS_COMPILE=aarch64-linux-android- \
+        CROSS_COMPILE=aarch64-linux-gnu- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
         CLANG_TRIPLE=aarch64-linux-gnu- \
         olddefconfig &> /dev/null
@@ -304,7 +288,7 @@ setup_precompile() {
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
         STRIP=llvm-strip \
-        CROSS_COMPILE=aarch64-linux-android- \
+        CROSS_COMPILE=aarch64-linux-gnu- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
         CLANG_TRIPLE=aarch64-linux-gnu- \
         syncconfig &> /dev/null
@@ -335,7 +319,7 @@ compile_kernel() {
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
         STRIP=llvm-strip \
-        CROSS_COMPILE=aarch64-linux-android- \
+        CROSS_COMPILE=aarch64-linux-gnu- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
         CLANG_TRIPLE=aarch64-linux-gnu- 
 }
@@ -359,4 +343,5 @@ main() {
 
 # Run the main function
 main "$1" "$2"
+
 
