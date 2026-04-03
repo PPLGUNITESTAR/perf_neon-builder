@@ -221,15 +221,44 @@ setup_precompile() {
     sed -i 's/KBUILD_CFLAGS\s\++= -O2/KBUILD_CFLAGS   += -O3/g' Makefile
     sed -i 's/LDFLAGS\s\++= -O2/LDFLAGS += -O3/g' Makefile
     
-    # Absolute Pruning: Memusnahkan logika GNU Assembler kuno agar selaras dengan kemurnian LLVM_IAS
-    echo "Purging legacy -no-integrated-as flags for Pure LLVM compatibility..."
-    find . -type f -name "Makefile" -exec sed -i 's/-no-integrated-as//g' {} +
-    find . -type f -name "Makefile" -exec sed -i 's/-fno-integrated-as//g' {} +
+    # Menghapus paksa sisa memori arsitektur usang
+    echo "Purging legacy -no-integrated-as flags from build scripts..."
+    find . -type f \( -name "Makefile" -o -name "Kbuild" -o -name "*.mk" \) -exec sed -i 's/-mno-integrated-as//g; s/-no-integrated-as//g; s/-fno-integrated-as//g' {} + || true
+
+    # ILUSI TINGKAT TINGGI: Construct Phantom Wrappers (GNU Ecosystem Spoofing)
+    echo "Constructing LLVM Phantom Wrappers to intercept hardcoded GNU calls..."
+    ln -sf clang $CLANG_DIR/bin/aarch64-linux-gnu-gcc
+    ln -sf clang $CLANG_DIR/bin/arm-linux-gnueabi-gcc
+    ln -sf ld.lld $CLANG_DIR/bin/aarch64-linux-gnu-ld
+    ln -sf ld.lld $CLANG_DIR/bin/arm-linux-gnueabi-ld
+    ln -sf llvm-ar $CLANG_DIR/bin/aarch64-linux-gnu-ar
+    ln -sf llvm-ar $CLANG_DIR/bin/arm-linux-gnueabi-ar
+    ln -sf llvm-nm $CLANG_DIR/bin/aarch64-linux-gnu-nm
+    ln -sf llvm-nm $CLANG_DIR/bin/arm-linux-gnueabi-nm
+    ln -sf llvm-objcopy $CLANG_DIR/bin/aarch64-linux-gnu-objcopy
+    ln -sf llvm-objcopy $CLANG_DIR/bin/arm-linux-gnueabi-objcopy
+    ln -sf llvm-objdump $CLANG_DIR/bin/aarch64-linux-gnu-objdump
+    ln -sf llvm-objdump $CLANG_DIR/bin/arm-linux-gnueabi-objdump
+    ln -sf llvm-strip $CLANG_DIR/bin/aarch64-linux-gnu-strip
+    ln -sf llvm-strip $CLANG_DIR/bin/arm-linux-gnueabi-strip
+
+    # Ini adalah kunci untuk membunuh "Broken Pipe" saat merakit .S (Kriptografi/vDSO)
+    cat << 'EOF' > $CLANG_DIR/bin/aarch64-linux-gnu-as
+#!/bin/bash
+exec clang -target aarch64-linux-gnu -c "$@"
+EOF
+    chmod +x $CLANG_DIR/bin/aarch64-linux-gnu-as
+
+    cat << 'EOF' > $CLANG_DIR/bin/arm-linux-gnueabi-as
+#!/bin/bash
+exec clang -target arm-linux-gnueabi -c "$@"
+EOF
+    chmod +x $CLANG_DIR/bin/arm-linux-gnueabi-as
     
     # Make a output directory
     mkdir -p out
     
-    # Setup main defconfig for compilation
+    # Setup main defconfig for compilation (Hilangkan AS=llvm-as!)
     make O=out \
         ARCH=arm64 \
         LLVM=1 \
@@ -241,7 +270,6 @@ setup_precompile() {
         CC=clang \
         LD=ld.lld \
         AR=llvm-ar \
-        AS=llvm-as \
         NM=llvm-nm \
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
@@ -279,7 +307,6 @@ setup_precompile() {
         CC=clang \
         LD=ld.lld \
         AR=llvm-ar \
-        AS=llvm-as \
         NM=llvm-nm \
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
@@ -303,7 +330,6 @@ setup_precompile() {
         CC=clang \
         LD=ld.lld \
         AR=llvm-ar \
-        AS=llvm-as \
         NM=llvm-nm \
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
@@ -340,7 +366,6 @@ compile_kernel() {
         CC=clang \
         LD=ld.lld \
         AR=llvm-ar \
-        AS=llvm-as \
         NM=llvm-nm \
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
