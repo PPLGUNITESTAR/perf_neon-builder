@@ -10,7 +10,6 @@ echo " "
 
 # Backport exports
 export BACKPORT_GENERAL_PATCH="https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd/raw/refs/heads/mainline/Patches/backport_patches.sh"
-export BACKPORT_SELINUX_PATCH="https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd/raw/refs/heads/mainline/Patches/backport_selinux_patches.sh"
 
 # KernelSU Settings - v1.7
 if [[ "$KERNELSU_SELECTOR" == "zako" ]]; then
@@ -56,7 +55,6 @@ if [[ "$KERNELSU_SELECTOR" == "zako" ]]; then
     echo "CONFIG_HAVE_SYSCALL_TRACEPOINTS=y" >> $MAIN_DEFCONFIG
     # Apply hooks
     curl -LSs $BACKPORT_GENERAL_PATCH | bash
-    curl -LSs $BACKPORT_SELINUX_PATCH | bash
     curl -LSs $KSU_HOOK | bash
 elif [[ "$KERNELSU_SELECTOR" == "zako-kpm" ]]; then
     # Setup
@@ -69,7 +67,6 @@ elif [[ "$KERNELSU_SELECTOR" == "zako-kpm" ]]; then
     echo "CONFIG_HAVE_SYSCALL_TRACEPOINTS=y" >> $MAIN_DEFCONFIG
     # Apply hooks
     curl -LSs $BACKPORT_GENERAL_PATCH | bash
-    curl -LSs $BACKPORT_SELINUX_PATCH | bash
     curl -LSs $KSU_HOOK | bash
 elif [[ "$KERNELSU_SELECTOR" == "" ]]; then
     echo "No KernelSU to set up."
