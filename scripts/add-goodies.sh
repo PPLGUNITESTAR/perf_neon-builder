@@ -53,6 +53,7 @@ if [[ "$KERNELSU_SELECTOR" == "zako" ]]; then
     echo "CONFIG_KPM=n" >> $MAIN_DEFCONFIG
     echo "CONFIG_KSU_MANUAL_HOOK=y" >> $MAIN_DEFCONFIG
     echo "CONFIG_HAVE_SYSCALL_TRACEPOINTS=y" >> $MAIN_DEFCONFIG
+    echo "CONFIG_THREAD_INFO_IN_TASK=y" >> $MAIN_DEFCONFIG
     # Apply hooks
     curl -LSs $BACKPORT_GENERAL_PATCH | bash
     curl -LSs $KSU_HOOK | bash
@@ -65,6 +66,7 @@ elif [[ "$KERNELSU_SELECTOR" == "zako-susfs" ]]; then
     echo "CONFIG_KPM=n" >> $MAIN_DEFCONFIG
     echo "CONFIG_KSU_MANUAL_HOOK=y" >> $MAIN_DEFCONFIG
     echo "CONFIG_HAVE_SYSCALL_TRACEPOINTS=y" >> $MAIN_DEFCONFIG
+    echo "CONFIG_THREAD_INFO_IN_TASK=y" >> $MAIN_DEFCONFIG
     # SUSFS
     if [[ "$KERNEL_VERSION" == "4.19" ]]; then
         # Patches
