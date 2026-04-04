@@ -13,9 +13,11 @@ setup_environment() {
     export GIT_NAME="$KBUILD_BUILD_USER"
     export GIT_EMAIL="$KBUILD_BUILD_USER@$KBUILD_BUILD_HOST"
     
-    # Toolchain paths (Pure LLVM Architecture)
+    # Toolchain paths
     export CLANG_DIR=$PWD/clang
-    export PATH="$CLANG_DIR/bin:/usr/bin:$PATH"
+    export GCC64_DIR=$PWD/gcc64
+    export GCC32_DIR=$PWD/gcc32
+    export PATH="$CLANG_DIR/bin/:$GCC64_DIR/bin/:$GCC32_DIR/bin/:/usr/bin:$PATH"
     
     # Device Settings - v2.2 (Exclusive to Sweet)
     export SELECTED_DEVICE="$DEVICE_IMPORT"
@@ -62,16 +64,35 @@ setup_environment() {
 
 # Setup toolchain function
 setup_toolchain() {
-    echo "Setting up toolchain..."
+    echo "Setting up Neutron Clang & Greenforce GCC toolchains..."
     
-    if [ ! -d "$CLANG_DIR/bin" ]; then
-        echo "Fetching Lilium Clang (Release: 20250912)..."
-        mkdir -p "$CLANG_DIR"
-        wget -qO lilium_clang.tar.gz "https://github.com/liliumproject/clang/releases/download/20250912/lilium_clang-20250912.tar.gz"
-        tar -xf lilium_clang.tar.gz -C "$CLANG_DIR"
-        rm -f lilium_clang.tar.gz
+    # Neutron Clang
+    if [ ! -d "$CLANG_DIR" ]; then
+        echo "Fetching Neutron Clang via Antman..."
+        mkdir -p "$CLANG_DIR" && cd "$CLANG_DIR"
+        curl -LO "https://raw.githubusercontent.com/Neutron-Toolchains/antman/main/antman"
+        chmod a+x antman
+        ./antman -S
+        ./antman --patch=glibc
+        cd ..
     else
-        echo "Local Clang dir found, utilizing integrated binutils."
+        echo "Local Neutron Clang dir found, using it."
+    fi
+    
+    # Greenforce GCC64
+    if [ ! -d "$GCC64_DIR" ]; then
+        echo "Fetching Greenforce GCC64..."
+        git clone https://github.com/greenforce-project/gcc-arm64 -b main --depth=1 "$GCC64_DIR" &> /dev/null
+    else
+        echo "Local gcc64 dir found, using it."
+    fi
+    
+    # Greenforce GCC32
+    if [ ! -d "$GCC32_DIR" ]; then
+        echo "Fetching Greenforce GCC32..."
+        git clone https://github.com/greenforce-project/gcc-arm -b main --depth=1 "$GCC32_DIR" &> /dev/null
+    else
+        echo "Local gcc32 dir found, using it."
     fi
 }
 
@@ -217,67 +238,29 @@ setup_ksu() {
 }
 
 setup_precompile() {
-    echo "Applying O3 flags and mitigating LLVM OOM..."
+    # Apply O3 flags into Kernel Makefile
+    echo "Applying O3 flags before compiling..."
     sed -i 's/KBUILD_CFLAGS\s\++= -O2/KBUILD_CFLAGS   += -O3/g' Makefile
     sed -i 's/LDFLAGS\s\++= -O2/LDFLAGS += -O3/g' Makefile
-    
-    # Menghapus paksa sisa memori arsitektur usang
-    echo "Purging legacy -no-integrated-as flags from build scripts..."
-    find . -type f \( -name "Makefile" -o -name "Kbuild" -o -name "*.mk" \) -exec sed -i 's/-mno-integrated-as//g; s/-no-integrated-as//g; s/-fno-integrated-as//g' {} + || true
-
-    # ILUSI TINGKAT TINGGI: Construct Phantom Wrappers (GNU Ecosystem Spoofing)
-    echo "Constructing LLVM Phantom Wrappers to intercept hardcoded GNU calls..."
-    ln -sf clang $CLANG_DIR/bin/aarch64-linux-gnu-gcc
-    ln -sf clang $CLANG_DIR/bin/arm-linux-gnueabi-gcc
-    ln -sf ld.lld $CLANG_DIR/bin/aarch64-linux-gnu-ld
-    ln -sf ld.lld $CLANG_DIR/bin/arm-linux-gnueabi-ld
-    ln -sf llvm-ar $CLANG_DIR/bin/aarch64-linux-gnu-ar
-    ln -sf llvm-ar $CLANG_DIR/bin/arm-linux-gnueabi-ar
-    ln -sf llvm-nm $CLANG_DIR/bin/aarch64-linux-gnu-nm
-    ln -sf llvm-nm $CLANG_DIR/bin/arm-linux-gnueabi-nm
-    ln -sf llvm-objcopy $CLANG_DIR/bin/aarch64-linux-gnu-objcopy
-    ln -sf llvm-objcopy $CLANG_DIR/bin/arm-linux-gnueabi-objcopy
-    ln -sf llvm-objdump $CLANG_DIR/bin/aarch64-linux-gnu-objdump
-    ln -sf llvm-objdump $CLANG_DIR/bin/arm-linux-gnueabi-objdump
-    ln -sf llvm-strip $CLANG_DIR/bin/aarch64-linux-gnu-strip
-    ln -sf llvm-strip $CLANG_DIR/bin/arm-linux-gnueabi-strip
-
-    # Ini adalah kunci untuk membunuh "Broken Pipe" saat merakit .S (Kriptografi/vDSO)
-    cat << 'EOF' > $CLANG_DIR/bin/aarch64-linux-gnu-as
-#!/bin/bash
-exec clang -target aarch64-linux-gnu -c "$@"
-EOF
-    chmod +x $CLANG_DIR/bin/aarch64-linux-gnu-as
-
-    cat << 'EOF' > $CLANG_DIR/bin/arm-linux-gnueabi-as
-#!/bin/bash
-exec clang -target arm-linux-gnueabi -c "$@"
-EOF
-    chmod +x $CLANG_DIR/bin/arm-linux-gnueabi-as
     
     # Make a output directory
     mkdir -p out
     
-    # Setup main defconfig for compilation (Hilangkan AS=llvm-as!)
+    # Setup main defconfig for compilation
     make O=out \
         ARCH=arm64 \
         LLVM=1 \
         LLVM_IAS=1 \
-        HOSTCC=clang \
-        HOSTCXX=clang++ \
-        HOSTLD=ld.lld \
-        HOSTAR=llvm-ar \
         CC=clang \
         LD=ld.lld \
         AR=llvm-ar \
+        AS=llvm-as \
         NM=llvm-nm \
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
         STRIP=llvm-strip \
-        CROSS_COMPILE=aarch64-linux-gnu- \
+        CROSS_COMPILE=aarch64-linux-android- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-        CC_COMPAT="clang --target=arm-linux-gnueabi" \
-        VDSO32_CC="clang --target=arm-linux-gnueabi" \
         CLANG_TRIPLE=aarch64-linux-gnu- \
         $ACTUAL_MAIN_DEFCONFIG &> /dev/null
         
@@ -300,21 +283,16 @@ EOF
         ARCH=arm64 \
         LLVM=1 \
         LLVM_IAS=1 \
-        HOSTCC=clang \
-        HOSTCXX=clang++ \
-        HOSTLD=ld.lld \
-        HOSTAR=llvm-ar \
         CC=clang \
         LD=ld.lld \
         AR=llvm-ar \
+        AS=llvm-as \
         NM=llvm-nm \
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
         STRIP=llvm-strip \
-        CROSS_COMPILE=aarch64-linux-gnu- \
+        CROSS_COMPILE=aarch64-linux-android- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-        CC_COMPAT="clang --target=arm-linux-gnueabi" \
-        VDSO32_CC="clang --target=arm-linux-gnueabi" \
         CLANG_TRIPLE=aarch64-linux-gnu- \
         olddefconfig &> /dev/null
         
@@ -323,21 +301,16 @@ EOF
         ARCH=arm64 \
         LLVM=1 \
         LLVM_IAS=1 \
-        HOSTCC=clang \
-        HOSTCXX=clang++ \
-        HOSTLD=ld.lld \
-        HOSTAR=llvm-ar \
         CC=clang \
         LD=ld.lld \
         AR=llvm-ar \
+        AS=llvm-as \
         NM=llvm-nm \
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
         STRIP=llvm-strip \
-        CROSS_COMPILE=aarch64-linux-gnu- \
+        CROSS_COMPILE=aarch64-linux-android- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-        CC_COMPAT="clang --target=arm-linux-gnueabi" \
-        VDSO32_CC="clang --target=arm-linux-gnueabi" \
         CLANG_TRIPLE=aarch64-linux-gnu- \
         syncconfig &> /dev/null
         
@@ -359,21 +332,16 @@ compile_kernel() {
         ARCH=arm64 \
         LLVM=1 \
         LLVM_IAS=1 \
-        HOSTCC=clang \
-        HOSTCXX=clang++ \
-        HOSTLD=ld.lld \
-        HOSTAR=llvm-ar \
         CC=clang \
         LD=ld.lld \
         AR=llvm-ar \
+        AS=llvm-as \
         NM=llvm-nm \
         OBJCOPY=llvm-objcopy \
         OBJDUMP=llvm-objdump \
         STRIP=llvm-strip \
-        CROSS_COMPILE=aarch64-linux-gnu- \
+        CROSS_COMPILE=aarch64-linux-android- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-        CC_COMPAT="clang --target=arm-linux-gnueabi" \
-        VDSO32_CC="clang --target=arm-linux-gnueabi" \
         CLANG_TRIPLE=aarch64-linux-gnu- 
 }
 
@@ -396,5 +364,4 @@ main() {
 
 # Run the main function
 main "$1" "$2"
-
 
