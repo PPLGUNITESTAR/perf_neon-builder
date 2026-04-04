@@ -269,7 +269,7 @@ setup_ksu() {
         # Manual Config Enablement
         echo "CONFIG_KSU=y" >> $MAIN_DEFCONFIG
         echo "CONFIG_KSU_MULTI_MANAGER_SUPPORT=y" >> $MAIN_DEFCONFIG
-        echo "CONFIG_KPM=n" >> $MAIN_DEFCONFIG
+        echo "CONFIG_KPM=y" >> $MAIN_DEFCONFIG
         echo "CONFIG_KSU_MANUAL_HOOK=y" >> $MAIN_DEFCONFIG
         echo "CONFIG_KSU_SUSFS=n" >> $MAIN_DEFCONFIG
         echo "CONFIG_HAVE_SYSCALL_TRACEPOINTS=y" >> $MAIN_DEFCONFIG
