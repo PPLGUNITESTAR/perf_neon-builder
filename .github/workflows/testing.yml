@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         build-type: [sweet, ginkgo, mi89x7]
-        ksu-type: [zako, zako_susfs, none]
+        ksu-type: [zako, none]
 
     steps:
       - uses: actions/checkout@v6
@@ -77,9 +77,6 @@ jobs:
           if [[ "${{ matrix.ksu-type }}" == "zako" ]]; then
             echo "Using KSU_ZAKO"
             export KSU_CHOICE="KSU_ZAKO"
-          elif [[ "${{ matrix.ksu-type }}" == "zako_susfs" ]]; then
-            echo "Using KSU_ZAKO_SUSFS"
-            export KSU_CHOICE="KSU_ZAKO_SUSFS"
           elif [[ "${{ matrix.ksu-type }}" == "none" ]]; then
             echo "No KSU will be used"
             export KSU_CHOICE="NONE"
