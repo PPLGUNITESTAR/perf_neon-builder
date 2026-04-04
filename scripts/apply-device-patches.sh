@@ -100,7 +100,7 @@ elif [[ "$DEVICE_IMPORT" == "mi89x7" ]]; then
     # BORE Scheduler Export
     export BORE_PATCH="https://github.com/rystX-OpenSource/rystx-kernel_asus_sdm660/commit/dfdf4d2fd3c1d0a9ad4dfbeaf2878e65dc87022b.patch"
     echo "-- Applying BORE Scheduler patch..."
-    wget -qO- $BORE_PATCH | filterdiff -x "arch/arm64/configs/asus/*" | patch -s -p1 --fuzz=5
+    wget -qO- $BORE_PATCH | filterdiff -x "arch/arm64/configs/asus/*" | patch -s -p1 --fuzz=5 &> /dev/null
     echo "CONFIG_SCHED_BORE=y" >> $MAIN_DEFCONFIG
 else
     echo "No specific patches to apply for $DEVICE_IMPORT."
