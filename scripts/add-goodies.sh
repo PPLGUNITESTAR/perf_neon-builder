@@ -68,6 +68,9 @@ elif [[ "$KERNELSU_SELECTOR" == "zako-susfs" ]]; then
     echo "CONFIG_HAVE_SYSCALL_TRACEPOINTS=y" >> $MAIN_DEFCONFIG
     echo "CONFIG_THREAD_INFO_IN_TASK=y" >> $MAIN_DEFCONFIG
     # SUSFS
+    echo "================================"
+    echo "Setting up SUSFS for KernelSU..."
+    echo "================================"
     if [[ "$KERNEL_VERSION" == "4.19" ]]; then
         # Patches
         wget -qO- "https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd/raw/refs/heads/mainline/Patches/Patch/susfs_patch_to_4.19.patch" | patch -p1 --fuzz=5
