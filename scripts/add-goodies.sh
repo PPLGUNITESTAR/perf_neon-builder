@@ -19,7 +19,7 @@ if [[ "$KERNELSU_SELECTOR" == "zako" ]]; then
 elif [[ "$KERNELSU_SELECTOR" == "zako-susfs" ]]; then
     export KSU_SETUP_URI="https://github.com/ReSukiSU/ReSukiSU/raw/refs/heads/main/kernel/setup.sh"
     export KSU_BRANCH="main"
-    export KSU_HOOK="https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd/blob/mainline/Patches/susfs_inline_hook_patches.sh"
+    export KSU_HOOK="https://github.com/JackA1ltman/NonGKI_Kernel_Build_2nd/raw/refs/heads/mainline/Patches/susfs_inline_hook_patches.sh"
 elif [[ "$KERNELSU_SELECTOR" == "none" ]]; then
     export KSU_SETUP_URI=""
     export KSU_BRANCH=""
