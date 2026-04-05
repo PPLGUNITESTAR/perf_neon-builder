@@ -19,6 +19,7 @@ Currently added features:
 
 # Compatibility
 Currently supported device:   
+- Redmi K20/Mi 9T ([davinci](https://download.lineageos.org/devices/davinci/builds)) 
 - Redmi Note 10 Pro/Pro Max ([sweet](https://download.lineageos.org/devices/sweet/builds))   
 - Redmi Note 8/8T ([ginkgo/willow](https://download.lineageos.org/devices/ginkgo/builds))   
 - Redmi 4A/5A/Note 5A Lite/Y1 Lite ([mi8917](https://download.lineageos.org/devices/Mi8917/builds))
@@ -26,8 +27,7 @@ Currently supported device:
 
 # Credits
 Patches & buildscript
-- [TBYOOL](https://github.com/tbyool) for the buildscripts & kernel patches. 
-- [zeta96](https://github.com/zeta96) for kernel umount patches for 4.19 devices.  
+- [TBYOOL](https://github.com/tbyool) for the buildscripts & kernel patches.   
 - [xiaomi-sm6150](https://github.com/xiaomi-sm6150) for the dtbo patches.   
 - [crdroidandroid](https://github.com/crdroidandroid) for the ln8000 patches.   
 - [JackA1ltMan](https://github.com/JackA1ltman) for syscall hook script, susfs inline hook script, and SUSFS patches.   
